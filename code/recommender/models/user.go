@@ -1,10 +1,10 @@
 package models
 
 type User struct {
-	UserRatings []UserRating `json:"userRatings"`
+	MovieRatings map[int]float32 `json:"userRatings"`
 }
 
-type UserRating struct {
-	MovieID int     `json:"movieId"`
-	Rating  float32 `json:"rating"`
+type SimilarUser struct {
+	UserID     int     `json:"userID"`
+	Similarity float64 `json:"similarity"`
 }

@@ -1,31 +1,12 @@
 package algorithms
 
-// DiceSimilarity calculates the Dice similarity coefficient between two sets.
-func DiceSimilarity(set1, set2 []string) float64 {
-	// Create maps to represent the sets for efficient intersection and size calculations.
-	set1Map := make(map[string]struct{})
-	set2Map := make(map[string]struct{})
-
-	// Populate set1Map and set2Map with elements from set1 and set2.
-	for _, item := range set1 {
-		set1Map[item] = struct{}{}
+// https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
+func DiceSimilarity[T comparable](set1 []T, set2 []T) float64 {
+	X := len(set1)
+	Y := len(set2)
+	intersection := Intersection[T](set1, set2)
+	if X+Y == 0 {
+		return 0.0
 	}
-	for _, item := range set2 {
-		set2Map[item] = struct{}{}
-	}
-
-	// Calculate the intersection size.
-	intersectionSize := 0
-	for item := range set1Map {
-		if _, exists := set2Map[item]; exists {
-			intersectionSize++
-		}
-	}
-
-	// Calculate the Dice similarity coefficient.
-	if len(set1Map) == 0 && len(set2Map) == 0 {
-		return 1.0 // Both sets are empty, so they are considered equal.
-	} else {
-		return (2.0 * float64(intersectionSize)) / (float64(len(set1Map)) + float64(len(set2Map)))
-	}
+	return float64(2*len(intersection)) / float64(X+Y)
 }

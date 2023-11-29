@@ -1,48 +1,68 @@
 package algorithms
 
-import "math"
+import (
+	"fmt"
+	"log"
+	"math"
+	"reflect"
+)
 
-// PearsonSimilarity calculates the Pearson correlation coefficient between two vectors.
-func PearsonSimilarity(vector1, vector2 []float64) float64 {
-	// Check if the vectors are of the same length.
+var floatType = reflect.TypeOf(float64(0))
+
+// https://en.wikipedia.org/wiki/Pearson_correlation_coefficient#For_a_sample
+func PearsonSimilarity[T comparable](vector1 []T, vector2 []T) float64 {
 	if len(vector1) != len(vector2) {
-		return 0.0 // Pearson correlation is not defined for vectors of different lengths.
+		return 0.0
 	}
 
-	n := len(vector1)
+	sumX, sumY, sumXY, sumXsq, sumYsq := 0.0, 0.0, 0.0, 0.0, 0.0
 
-	// Calculate the means of both vectors.
-	mean1 := mean(vector1)
-	mean2 := mean(vector2)
-
-	// Calculate the Pearson correlation coefficient.
-	numerator := 0.0
-	denominator1 := 0.0
-	denominator2 := 0.0
-
-	for i := 0; i < n; i++ {
-		numerator += (vector1[i] - mean1) * (vector2[i] - mean2)
-		denominator1 += math.Pow(vector1[i]-mean1, 2)
-		denominator2 += math.Pow(vector2[i]-mean2, 2)
+	for i := 0; i < len(vector1); i++ {
+		x, err := toFloat64(vector1[i])
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+			return float64(math.NaN())
+		}
+		y, err := toFloat64(vector2[i])
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+			return float64(math.NaN())
+		}
+		sumX += x
+		sumY += y
+		sumXY += x * y
+		sumXsq += x * x
+		sumYsq += y * y
 	}
 
-	denominator := math.Sqrt(denominator1) * math.Sqrt(denominator2)
+	// Calculate the Pearson correlation coefficient
+	numerator := (float64(len(vector1))*sumXY - sumX*sumY)
+	denominator := math.Sqrt((float64(len(vector1))*sumXsq - sumX*sumX) * (float64(len(vector1))*sumYsq - sumY*sumY))
 
-	if denominator == 0 {
-		return 0.0 // Pearson correlation is not defined for zero variance.
+	if denominator == 0.0 {
+		return 0.0
 	}
 
 	return numerator / denominator
 }
 
-func mean(vector []float64) float64 {
-	if len(vector) == 0 {
-		return 0.0
-	}
+func toFloat64(value interface{}) (float64, error) {
+	v := reflect.ValueOf(value)
+	v = reflect.Indirect(v)
 
-	sum := 0.0
-	for _, value := range vector {
-		sum += value
+	switch v.Kind() {
+	case reflect.Float32, reflect.Float64:
+		return v.Float(), nil
+	case reflect.Bool:
+		if v.Bool() {
+			return 1.0, nil
+		}
+		return 0.0, nil
+	default:
+		if !v.Type().ConvertibleTo(floatType) {
+			return math.NaN(), fmt.Errorf("Cannot convert %v to float64", v.Type())
+		}
+		fv := v.Convert(floatType)
+		return fv.Float(), nil
 	}
-	return sum / float64(len(vector))
 }

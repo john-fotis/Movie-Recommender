@@ -1,6 +1,14 @@
 package models
 
-type Tag struct {
-	UserID    int    `json:"userId"`
-	Tag       string `json:"tag"`
+type MovieTags struct {
+	UserTags map[int]UserTags `json:"userTags"`
+}
+
+type UserTags struct {
+	Tags []string `json:"tags"`
+}
+
+type TagOccurrence struct {
+	Tag         string `json:"tag"`
+	Occurrences int    `json:"occurences"`
 }
