@@ -1,69 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Recommendation System</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <title>Recommender System</title>
+        <link rel="stylesheet" href="css/index.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    </head>
 
-<body>
-    <div class="container mt-4">
-        <h1>Recommendation System</h1>
-        <form id="recommendationForm">
-            <div class="form-group">
-                <label for="similarity">Similarity:</label>
-                <input type="text" class="form-control" id="similarity" name="similarity">
-            </div>
-            <!-- Other input fields for Algorithm, Input, MaxRecords -->
-            <button type="submit" class="btn btn-primary">Get Recommendations</button>
-        </form>
-
-        <div id="recommendationResults">
-            <!-- Display recommendations here -->
+    <body>
+        <div class="container mt-4">
+            <h1>Recommender System</h1>
+            <form id="recommendationForm">
+                <div class="form-group">
+                    <label for="similarity">Similarity:</label>
+                    <select class="form-control" id="similarity" name="similarity" required>
+                        <option value="jaccard">Jaccard</option>
+                        <option value="dice">Dice</option>
+                        <option value="cosine">Cosine</option>
+                        <option value="pearson">Pearson</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="algorithm">Algorithm:</label>
+                    <select class="form-control" id="algorithm" name="algorithm" required>
+                        <option value="user">User</option>
+                        <option value="item">Item</option>
+                        <option value="tag">Tag</option>
+                        <option value="title">Title</option>
+                        <option value="hybrid">Hybrid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="recommendations">Recommendations:</label>
+                    <input type="number" class="form-control" id="recommendations" name="recommendations" min="1"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="input">Input:</label>
+                    <input type="number" class="form-control" id="input" name="input" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="maxRecords">Max Records:</label>
+                    <input type="number" class="form-control" id="maxRecords" name="maxRecords" min="-1">
+                </div>
+                <button type="submit" class="btn btn-primary" id="submitButton">Get Recommendations</button>
+                <div id="loadingIndicator" style="display: none;">Loading...</div>
+            </form>
+            <div id="recommendationResults"></div>
         </div>
-    </div>
 
-    <!-- Bootstrap JS and your own JavaScript for handling form submission -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        // JavaScript to handle form submission and API request
-        document.getElementById('recommendationForm').addEventListener('submit', function (event) {
-            event.preventDefault();
-            
-            // Get form data
-            const formData = new FormData(this);
-            const params = {
-                similarity: formData.get('similarity'),
-                // Get other parameters similarly
-            };
-            
-            // Make a GET request to your backend API
-            fetch('/recommend', {
-                method: 'GET',
-                // Add query parameters to the URL
-                // Example: /recommend?similarity=value&algorithm=value&input=value&maxrecords=value
-                // Construct the URL with the parameters from 'params'
-                // Replace 'value' with actual parameter values from 'params'
-                // Replace '...' with the rest of the parameters
-                // Example: /recommend?similarity=cosine&algorithm=item&input=5&maxrecords=-1
-                // Ensure proper URL encoding for values
-                // headers, body, etc. might be necessary based on your backend setup
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Handle the returned recommendations and display them on the UI
-                // Update the content of the 'recommendationResults' div with the recommendations received
-                // Example: Display recommendations as a list or in any desired format
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Handle error scenarios if needed
-            });
-        });
-    </script>
-</body>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <noscript>Sorry, your browser does not support JavaScript!</noscript>
+
+    </body>
 
 </html>

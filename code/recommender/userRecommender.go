@@ -93,10 +93,10 @@ func findSimilarUsers(cfg *config.Config, users *map[int]model.User) []model.Sim
 				case "dice":
 					similarity = algorithms.DiceSimilarity[int](selectedUserMovies, userMovies)
 				case "cosine":
-					vectorA, vectorB := getMovieRatingVectors(selectedUser, user, selectedUserMovies, userMovies)
+					vectorA, vectorB := util.GetMovieRatingVectors(selectedUser, user, selectedUserMovies, userMovies)
 					similarity = algorithms.CosineSimilarity[float32](vectorA, vectorB, algorithms.DotProductFloat32)
 				case "pearson":
-					vectorA, vectorB := getMovieRatingVectors(selectedUser, user, selectedUserMovies, userMovies)
+					vectorA, vectorB := util.GetMovieRatingVectors(selectedUser, user, selectedUserMovies, userMovies)
 					similarity = algorithms.PearsonSimilarity[float32](vectorA, vectorB)
 				}
 				localSimilarUsers = append(localSimilarUsers, model.SimilarUser{
@@ -126,23 +126,4 @@ func updateMostSimilarUsers(users *[]model.SimilarUser, usersToKeep int) {
 	if len(*users) > usersToKeep {
 		(*users) = (*users)[:usersToKeep]
 	}
-}
-
-func getMovieRatingVectors(user1 model.User, user2 model.User, movies1 []int, movies2 []int) ([]float32, []float32) {
-	union := algorithms.Union[int](movies1, movies2)
-	vectorA := make([]float32, 0, len(union))
-	vectorB := make([]float32, 0, len(union))
-	for _, id := range union {
-		if ratingA, exists := user1.MovieRatings[id]; exists {
-			vectorA = append(vectorA, ratingA)
-		} else {
-			vectorA = append(vectorA, 0)
-		}
-		if ratingB, exists := user2.MovieRatings[id]; exists {
-			vectorB = append(vectorB, ratingB)
-		} else {
-			vectorB = append(vectorB, 0)
-		}
-	}
-	return vectorA, vectorB
 }

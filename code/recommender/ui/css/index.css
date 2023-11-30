@@ -1,0 +1,30 @@
+.container {
+    margin-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+#recommendationForm {
+    width: 50%;
+    margin-bottom: 20px;
+}
+
+#similarity,
+#algorithm {
+    text-align: center;
+}
+
+#similarity option,
+#algorithm option {
+    text-align: center;
+}
+
+.form-control {
+    text-align: center;
+}

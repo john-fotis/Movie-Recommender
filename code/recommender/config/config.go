@@ -26,24 +26,30 @@ type Config struct {
 	MaxTitles  int
 	MaxMovies  int
 	MaxTags    int
+	WebServer  bool
 }
 
-func InitServer() (Config, error) {
+func InitRecommender() (Config, error) {
 	dataDir := flag.String("d", "", "Directory of data")
 	numRecommendations := flag.Int("n", 0, "Number of recommendations")
 	similarityMetric := flag.String("s", "", "Similarity metric")
 	algorithm := flag.String("a", "", "Algorithm")
 	input := flag.Int("i", 0, "Input")
 	maxRecords := flag.Int("r", -1, "Max records to load")
+	enableUI := flag.Bool("u", false, "Enable UI webserver")
 	flag.Parse()
 
 	var validationErrors []error
+	usageMsg := fmt.Sprintln("\nUsage:\n" +
+		"recommender -d directory_of_data -n number_of_recommendations -s similarity_metric -a algorithm -i input (-r maxRecordsToRead)\n" +
+		"OR\n" +
+		"recommender -d directory_of_data -u",
+	)
 
 	// Check if required flags are provided.
-	if *dataDir == "" || *numRecommendations == 0 || *similarityMetric == "" || *algorithm == "" || *input == 0 {
-		return Config{}, errors.New("Usage: recommender -d directory_of_data -n number_of_recommendations -s similarity_metric -a algorithm -i input (-r maxRecordsToRead)")
+	if *dataDir == "" {
+		return Config{}, errors.New(usageMsg)
 	}
-
 	// Check if the data directory exists.
 	if _, err := os.Stat(*dataDir); os.IsNotExist(err) {
 		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' directory does not exist", *dataDir)))
@@ -70,19 +76,26 @@ func InitServer() (Config, error) {
 		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found", tagsFile)))
 	}
 
-	// Validate that provided similarity metric is accepted
-	if *similarityMetric != "jaccard" && *similarityMetric != "dice" && *similarityMetric != "cosine" && *similarityMetric != "pearson" {
-		validationErrors = append(validationErrors, errors.New("Allowed similarity metrics: 'jaccard', 'dice', 'cosine', 'pearson'"))
-	}
+	if !*enableUI {
+		// Check if required flags are provided.
+		if *numRecommendations == 0 || *similarityMetric == "" || *algorithm == "" || *input == 0 {
+			return Config{}, errors.New(usageMsg)
+		}
 
-	// Validate that provided algorithm is accepted
-	if *algorithm != "user" && *algorithm != "item" && *algorithm != "tag" && *algorithm != "title" && *algorithm != "hybrid" {
-		validationErrors = append(validationErrors, errors.New("Allowed similarity metrics: 'user', 'item', 'tag', 'title', 'hybrid'"))
-	}
+		// Validate that provided similarity metric is accepted
+		if *similarityMetric != "jaccard" && *similarityMetric != "dice" && *similarityMetric != "cosine" && *similarityMetric != "pearson" {
+			validationErrors = append(validationErrors, errors.New("Allowed similarity metrics: 'jaccard', 'dice', 'cosine', 'pearson'"))
+		}
 
-	// Validate that maxRecords is greater than 0 or -1 (default)
-	if *maxRecords < 0 && *maxRecords != -1 {
-		validationErrors = append(validationErrors, errors.New("Max records to load must be greater than 0 or -1"))
+		// Validate that provided algorithm is accepted
+		if *algorithm != "user" && *algorithm != "item" && *algorithm != "tag" && *algorithm != "title" && *algorithm != "hybrid" {
+			validationErrors = append(validationErrors, errors.New("Allowed similarity metrics: 'user', 'item', 'tag', 'title', 'hybrid'"))
+		}
+
+		// Validate that maxRecords is greater than 0 or -1 (default)
+		if *maxRecords < 0 && *maxRecords != -1 {
+			validationErrors = append(validationErrors, errors.New("Max records to load must be greater than 0 or -1"))
+		}
 	}
 
 	// Check if any validation failed
@@ -101,6 +114,7 @@ func InitServer() (Config, error) {
 		MaxTitles:       -1,
 		MaxMovies:       -1,
 		MaxTags:         -1,
+		WebServer:       *enableUI,
 	}
 
 	switch *algorithm {
