@@ -90,7 +90,7 @@ func startWebServer(dataDir string) {
 	http.Handle("/ui/", http.StripPrefix("/ui/", http.FileServer(http.Dir(os.Getenv("PWD")+"/ui"))))
 	http.HandleFunc("/recommend", handleWrapper(dataDir))
 
-	fmt.Printf("Starting Web-Server on port 8080\n")
+	fmt.Printf("Starting UI Web-Server on http://localhost:8080/ui\n")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}

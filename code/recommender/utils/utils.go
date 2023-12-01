@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"recommender/algorithms"
 	model "recommender/models"
 	"runtime/pprof"
 	"strings"
@@ -33,17 +32,14 @@ func GenerateChunkFromSet(set []int, chunkSize int) [][]int {
 Generate 2 vectors which contain movie ratings based on a slice of
 movie ratings for each user. The final vectors have the same size
 and are aligned so that each vector[i] value refers to the same i (user).
+Notice: Priority is given to movies1, which means after all IDs in movies1 are processed, the
+rest IDs in movies2 (if any) will be ignored. Final vectors length is equal to len(movies1).
 */
 func GetMovieRatingVectors(user1 model.User, user2 model.User, movies1 []int, movies2 []int) ([]float32, []float32) {
-	union := algorithms.Union[int](movies1, movies2)
-	vectorA, vectorB := make([]float32, 0, len(union)), make([]float32, 0, len(union))
-	for _, id := range union {
-		if ratingA, exists := user1.MovieRatings[id]; exists {
-			vectorA = append(vectorA, ratingA)
-		} else {
-			vectorA = append(vectorA, 0)
-		}
-		if ratingB, exists := user2.MovieRatings[id]; exists {
+	vectorA, vectorB := make([]float32, 0, len(movies1)), make([]float32, 0, len(movies1))
+	for _, movieID := range movies1 {
+		vectorA = append(vectorA, user1.MovieRatings[movieID])
+		if ratingB, exists := user2.MovieRatings[movieID]; exists {
 			vectorB = append(vectorB, ratingB)
 		} else {
 			vectorB = append(vectorB, 0)
@@ -56,18 +52,14 @@ func GetMovieRatingVectors(user1 model.User, user2 model.User, movies1 []int, mo
 Generate 2 vectors which contain user ratings based on a slice of user
 ratings for each movie. The final vectors have the same size and are
 aligned so that each vector[i] value refers to the same i (movie).
+Notice: Priority is given to users1, which means after all IDs in users1 are processed, the
+rest IDs in users2 (if any) will be ignored. Final vectors length is equal to len(users1).
 */
 func GetUserRatingVectors(movie1 model.Movie, movie2 model.Movie, users1 []int, users2 []int) ([]float32, []float32) {
-	union := algorithms.Union[int](users1, users2)
-	vectorA := make([]float32, 0, len(union))
-	vectorB := make([]float32, 0, len(union))
-	for _, id := range union {
-		if ratingA, exists := movie1.UserRatings[id]; exists {
-			vectorA = append(vectorA, ratingA)
-		} else {
-			vectorA = append(vectorA, 0)
-		}
-		if ratingB, exists := movie2.UserRatings[id]; exists {
+	vectorA, vectorB := make([]float32, 0, len(users1)), make([]float32, 0, len(users1))
+	for _, userID := range users1 {
+		vectorA = append(vectorA, movie1.UserRatings[userID])
+		if ratingB, exists := movie2.UserRatings[userID]; exists {
 			vectorB = append(vectorB, ratingB)
 		} else {
 			vectorB = append(vectorB, 0)
@@ -80,6 +72,8 @@ func GetUserRatingVectors(movie1 model.Movie, movie2 model.Movie, users1 []int, 
 Generate 2 vectors which contain tag occurrences based on a map of
 {tag:occurrences} pairs for each vector. The final vectors have the same
 size and are aligned so that each vector[i] value refers to the same i (tag).
+Notice: Priority is given to movie1, which means after all tags of movie1 are processed, the rest
+tags of movie2 (if any) will be ignored. Final vectors length is equal to len(movie1TagOccurences).
 */
 func GetTagOccurenceVectors(movie1TagOccurences map[string]int, movie2TagOccurences map[string]int) ([]int, []int) {
 	movie1Tags, movie2Tags := []string{}, []string{}
@@ -89,14 +83,9 @@ func GetTagOccurenceVectors(movie1TagOccurences map[string]int, movie2TagOccuren
 	for tag := range movie2TagOccurences {
 		movie2Tags = append(movie2Tags, tag)
 	}
-	union := algorithms.Union[string](movie1Tags, movie2Tags)
-	vectorA, vectorB := make([]int, 0, len(union)), make([]int, 0, len(union))
-	for _, tag := range union {
-		if occurrencesA, exists := movie1TagOccurences[tag]; exists {
-			vectorA = append(vectorA, occurrencesA)
-		} else {
-			vectorA = append(vectorA, 0)
-		}
+	vectorA, vectorB := make([]int, 0, len(movie1Tags)), make([]int, 0, len(movie1Tags))
+	for _, tag := range movie1Tags {
+		vectorA = append(vectorA, movie1TagOccurences[tag])
 		if occurrencesB, exists := movie2TagOccurences[tag]; exists {
 			vectorB = append(vectorB, occurrencesB)
 		} else {
@@ -112,7 +101,6 @@ map consisted of {token:IDFscore} pairs and two TF maps consisted of {token:TFsc
 */
 func GetTfIdfVectors(idfMap map[string]float64, tfMap1, tfMap2 map[string]float64) ([]float64, []float64) {
 	vectorA, vectorB := make([]float64, 0), make([]float64, 0)
-	index := 0
 	for token, idf := range idfMap {
 		_, exists1 := tfMap1[token]
 		_, exists2 := tfMap2[token]
@@ -128,7 +116,6 @@ func GetTfIdfVectors(idfMap map[string]float64, tfMap1, tfMap2 map[string]float6
 			} else {
 				vectorB = append(vectorB, 0)
 			}
-			index++
 		}
 	}
 	return vectorA, vectorB
@@ -138,32 +125,23 @@ func GetTfIdfVectors(idfMap map[string]float64, tfMap1, tfMap2 map[string]float6
 Create two boolean vectors based on two sets of elements, indicating the presence
 or absence of each element in the respective sets. The final vectors have the same
 size are aligned so that each vector[i] value refers to the same i (tag).
+Notice: Priority is given to set1, which means after all items of set1 are processed, the rest
+items of set2 (if any) will be ignored. Final vectors length is equal to len(set1).
 */
 func CreateBoolVectors[T comparable](set1 []T, set2 []T) (vectorA []bool, vectorB []bool) {
-	union := algorithms.Union(set1, set2)
-	// Create maps to check the presence of elements in set1 and set2.
-	set1Map, set2Map := map[T]bool{}, map[T]bool{}
-	for _, item := range set1 {
-		set1Map[item] = true
-	}
-	for _, item := range set2 {
-		set2Map[item] = true
-	}
 	// Populate vectors based on the presence of elements in union set.
-	vectorA = make([]bool, 0, len(union))
-	vectorB = make([]bool, 0, len(union))
-	for _, item := range union {
-		if set1Map[item] {
-			vectorA = append(vectorA, true)
-		} else {
-			vectorA = append(vectorA, false)
-		}
-		if set2Map[item] {
-			vectorB = append(vectorB, true)
-		} else {
-			vectorB = append(vectorB, false)
+	vectorA, vectorB = make([]bool, 0, len(set1)), make([]bool, 0, len(set1))
+	for _, item1 := range set1 {
+		vectorA = append(vectorA, true)
+		vectorB = append(vectorB, false)
+		for _, item2 := range set2 {
+			if item1 == item2 {
+				vectorB[len(vectorB)-1] = true
+				break
+			}
 		}
 	}
+	fmt.Println(len(vectorA), len(vectorB))
 	return vectorA, vectorB
 }
 
@@ -183,7 +161,6 @@ func StartProfiling(fileName string) {
 		return
 	}
 	pprof.StartCPUProfile(file)
-	// defer pprof.StopCPUProfile()
 }
 
 func StopProfiling() {

@@ -25,21 +25,22 @@ func TestGetMovieRatingVectors(t *testing.T) {
 	user1 := model.User{
 		MovieRatings: map[int]float32{
 			1: 4.0,
-			2: 3.5,
 			3: 5.0,
+			2: 3.5,
 		},
 	}
 	user2 := model.User{
 		MovieRatings: map[int]float32{
+			4: 2.5,
 			2: 4.5,
 			3: 3.0,
-			4: 2.5,
+			5: 2.5,
 		},
 	}
 	movies1 := []int{1, 2, 3}
 	movies2 := []int{2, 3, 4}
-	expectedVectorA := []float32{4.0, 3.5, 5.0, 0.0}
-	expectedVectorB := []float32{0.0, 4.5, 3.0, 2.5}
+	expectedVectorA := []float32{4.0, 3.5, 5.0}
+	expectedVectorB := []float32{0.0, 4.5, 3.0}
 	vectorA, vectorB := util.GetMovieRatingVectors(user1, user2, movies1, movies2)
 	if len(vectorA) != len(vectorB) || len(vectorA) != len(expectedVectorA) {
 		t.Errorf("Vector A or Vector B not of the expected size.")
@@ -57,21 +58,22 @@ func TestGetUserRatingVectors(t *testing.T) {
 	movie1 := model.Movie{
 		UserRatings: map[int]float32{
 			1: 4.0,
-			2: 3.5,
 			3: 5.0,
+			2: 3.5,
 		},
 	}
 	movie2 := model.Movie{
 		UserRatings: map[int]float32{
+			4: 2.5,
 			2: 4.5,
 			3: 3.0,
-			4: 2.5,
+			5: 2.5,
 		},
 	}
 	users1 := []int{1, 2, 3}
 	users2 := []int{2, 3, 4}
-	expectedVectorA := []float32{4.0, 3.5, 5.0, 0.0}
-	expectedVectorB := []float32{0.0, 4.5, 3.0, 2.5}
+	expectedVectorA := []float32{4.0, 3.5, 5.0}
+	expectedVectorB := []float32{0.0, 4.5, 3.0}
 	vectorA, vectorB := util.GetUserRatingVectors(movie1, movie2, users1, users2)
 	if len(vectorA) != len(vectorB) || len(vectorA) != len(expectedVectorA) {
 		t.Errorf("Vector A or Vector B not of the expected size.")
@@ -90,14 +92,15 @@ func TestGetTagOccurenceVectors(t *testing.T) {
 		"tag1": 3,
 		"tag2": 2,
 		"tag3": 4,
+		"tag6": 5,
 	}
 	movie2TagOccurrences := map[string]int{
+		"tag4": 2,
 		"tag2": 1,
 		"tag3": 5,
-		"tag4": 2,
 	}
-	expectedVectorA := []int{3, 2, 4, 0}
-	expectedVectorB := []int{0, 1, 5, 2}
+	expectedVectorA := []int{3, 2, 4, 5}
+	expectedVectorB := []int{0, 1, 5, 0}
 	vectorA, vectorB := util.GetTagOccurenceVectors(movie1TagOccurrences, movie2TagOccurrences)
 	if len(vectorA) != len(vectorB) || len(vectorA) != len(expectedVectorA) {
 		t.Errorf("Vector A or Vector B not of the expected size.")
@@ -129,8 +132,8 @@ func TestGetTagOccurenceVectors(t *testing.T) {
 func TestCreateBoolVectors(t *testing.T) {
 	set1 := []string{"a", "b", "c"}
 	set2 := []string{"b", "c", "d"}
-	expectedVectorA := []bool{true, true, true, false}
-	expectedVectorB := []bool{false, true, true, true}
+	expectedVectorA := []bool{true, true, true}
+	expectedVectorB := []bool{false, true, true}
 	vectorA, vectorB := util.CreateBoolVectors(set1, set2)
 	if len(vectorA) != len(vectorB) || len(vectorA) != len(expectedVectorA) {
 		t.Errorf("Vector A or Vector B not of the expected size.")
