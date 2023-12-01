@@ -24,12 +24,21 @@ func RecommendBasedOnItem(cfg *config.Config, movies *map[int]model.Movie, userI
 	// A movie is recommendable when its similar to at least one movie rated by the selected user
 	recommendableMovies := make(map[int]bool, 0)
 	for movieID := range user.MovieRatings {
-		similarMoviesMap[movieID] = findSimilarMovies(cfg, movieID, movies)
-		for otherMovieID := range similarMoviesMap[movieID] {
-			// Skip movies the user has already rated
-			if _, exists := user.MovieRatings[otherMovieID]; !exists {
-				recommendableMovies[otherMovieID] = true
+		// Find similar movies only for movies the user liked
+		if user.MovieRatings[movieID] >= 4 {
+			// Find the top k most similar movies to movieID
+			similarMovies := findSimilarMovies(cfg, movieID, movies, k)
+			currentSimilarMoviesMap := make(map[int]model.SimilarMovie, len(similarMovies))
+			for _, movie := range similarMovies {
+				currentSimilarMoviesMap[movie.MovieID] = movie
 			}
+			for otherMovieID := range currentSimilarMoviesMap {
+				// Skip movies the user has already rated
+				if _, exists := user.MovieRatings[otherMovieID]; !exists {
+					recommendableMovies[otherMovieID] = true
+				}
+			}
+			similarMoviesMap[movieID] = currentSimilarMoviesMap
 		}
 	}
 	// Continue to recommendation part
@@ -58,7 +67,11 @@ func RecommendBasedOnItem(cfg *config.Config, movies *map[int]model.Movie, userI
 	return ratingForecasts
 }
 
-func findSimilarMovies(cfg *config.Config, selectedMovieID int, movies *map[int]model.Movie) map[int]model.SimilarMovie {
+func findSimilarMovies(cfg *config.Config, selectedMovieID int, movies *map[int]model.Movie, maxMovies ...int) []model.SimilarMovie {
+	moviesToKeep := -1
+	if len(maxMovies) > 0 {
+		moviesToKeep = maxMovies[0]
+	}
 	selectedMovie := (*movies)[selectedMovieID]
 	// Slice of userIDs who have rated the selected movie
 	selectedMovieUsers := make([]int, 0, len(selectedMovie.UserRatings))
@@ -79,8 +92,8 @@ func findSimilarMovies(cfg *config.Config, selectedMovieID int, movies *map[int]
 		}
 		movieIDs = append(movieIDs, movieID)
 	}
-	if numThreads > len(movieIDs)/10 {
-		numThreads = len(movieIDs) / 10
+	if numThreads > len(movieIDs) {
+		numThreads = len(movieIDs)
 	}
 	movieChunks := util.GenerateChunkFromSet(movieIDs, numThreads)
 	// The final slice of similar movies from all routines
@@ -128,12 +141,8 @@ func findSimilarMovies(cfg *config.Config, selectedMovieID int, movies *map[int]
 	}
 	// Wait for all routines to finish
 	wg.Wait()
-	updateMostSimilarMovies(&similarMovies, k)
-	similarMoviesMap := make(map[int]model.SimilarMovie, len(similarMovies))
-	for _, movie := range similarMovies {
-		similarMoviesMap[movie.MovieID] = movie
-	}
-	return similarMoviesMap
+	updateMostSimilarMovies(&similarMovies, moviesToKeep)
+	return similarMovies
 }
 
 func updateMostSimilarMovies(movies *[]model.SimilarMovie, moviesToKeep int) {
@@ -155,7 +164,7 @@ func updateMostSimilarMovies(movies *[]model.SimilarMovie, moviesToKeep int) {
 	sort.SliceStable((*movies), func(i, j int) bool {
 		return (*movies)[i].Similarity > (*movies)[j].Similarity
 	})
-	if len(*movies) > moviesToKeep {
+	if moviesToKeep != -1 && len(*movies) > moviesToKeep {
 		(*movies) = (*movies)[:moviesToKeep]
 	}
 }

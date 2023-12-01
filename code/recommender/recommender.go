@@ -26,7 +26,6 @@ type ResponseTemplate struct {
 	Status     string         `json:"status"`
 	StatusCode int            `json:"statusCode"`
 	Data       []ResponseData `json:"data"`
-	DataType   string         `json:"dataType"`
 	Message    string         `json:"message"`
 }
 
@@ -37,7 +36,7 @@ type ResponseData struct {
 }
 
 var (
-	// Number of threads to implement parallelism
+	// Number of routines to be spawned for parallelism
 	numThreads = 8
 	// Set size to be used
 	k = 128
@@ -70,8 +69,13 @@ func main() {
 		case "tag":
 			util.LoadData(&data.MovieTags, cfg.DataDir+"tags.gob", cfg.MaxTags)
 		case "hybrid":
-			util.LoadData(&data.Users, cfg.DataDir+"users.gob")
+			util.LoadData(&data.Movies, cfg.DataDir+"movies.gob", cfg.MaxMovies)
 			util.LoadData(&data.MovieTags, cfg.DataDir+"tags.gob", cfg.MaxTags)
+		}
+		err := checkRequestFeasibility(cfg.Algorithm, cfg.Input)
+		if err != "" {
+			fmt.Println(err)
+			return
 		}
 		ratingForecasts, relevantMovies := performRecommendation(&cfg, &data)
 		printRecommendations(&cfg, ratingForecasts, relevantMovies)
@@ -86,17 +90,15 @@ func startWebServer(dataDir string) {
 	util.LoadData(&data.MovieTitles, dataDir+"movieTitles.gob")
 	util.LoadData(&data.Movies, dataDir+"movies.gob")
 	util.LoadData(&data.MovieTags, dataDir+"tags.gob")
-
+	// API endpoints
 	http.Handle("/ui/", http.StripPrefix("/ui/", http.FileServer(http.Dir(os.Getenv("PWD")+"/ui"))))
-	http.HandleFunc("/recommend", handleWrapper(dataDir))
-
+	http.HandleFunc("/recommend", handleRecommendationWrapper(dataDir))
+	// Start the Web-Server
 	fmt.Printf("Starting UI Web-Server on http://localhost:8080/ui\n")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatalf("Server error: %v", err)
-	}
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func handleWrapper(dataDir string) func(http.ResponseWriter, *http.Request) {
+func handleRecommendationWrapper(dataDir string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handleRecommendationRequest(w, r, dataDir)
 	}
@@ -108,7 +110,6 @@ func handleRecommendationRequest(w http.ResponseWriter, r *http.Request, dataDir
 		Status:     "success",
 		StatusCode: 200,
 		Data:       []ResponseData{},
-		DataType:   "",
 		Message:    "",
 	}
 	// Retrieve & parse query parameters, and reaload Data if necessary
@@ -130,29 +131,32 @@ func handleRecommendationRequest(w http.ResponseWriter, r *http.Request, dataDir
 		Input:           input,
 		MaxRecords:      maxRecords,
 	}
-	// Proceed to recommendation
-	ratingForecasts, relevantMovies := performRecommendation(&cfg, &data)
-	// Fill the response content based on the type of the recommendation results
-	if len(ratingForecasts) != 0 {
-		for _, movieRating := range ratingForecasts {
-			response.Data = append(response.Data, ResponseData{
-				MovieID:    movieRating.MovieID,
-				MovieTitle: data.MovieTitles[movieRating.MovieID].Title,
-				Result:     math.Trunc((float64(movieRating.Rating) * 100)) / 100,
-			})
+	err := checkRequestFeasibility(cfg.Algorithm, cfg.Input)
+	if err == "" {
+		// Request is feasible, proceed to recommendation
+		ratingForecasts, relevantMovies := performRecommendation(&cfg, &data)
+		// Fill the response content based on the type of the recommendation results
+		if len(ratingForecasts) != 0 {
+			for _, movieRating := range ratingForecasts {
+				response.Data = append(response.Data, ResponseData{
+					MovieID:    movieRating.MovieID,
+					MovieTitle: data.MovieTitles[movieRating.MovieID].Title,
+					Result:     math.Trunc((float64(movieRating.Rating) * 100)) / 100,
+				})
+			}
+		} else if len(relevantMovies) != 0 {
+			for _, relevantMovie := range relevantMovies {
+				response.Data = append(response.Data, ResponseData{
+					MovieID:    relevantMovie.MovieID,
+					MovieTitle: data.MovieTitles[relevantMovie.MovieID].Title,
+					Result:     math.Trunc((relevantMovie.Similarity * 100000)) / 100000,
+				})
+			}
+		} else {
+			response.Message = fmt.Sprintf("No relevant movies found for user %d. Try using another algorithm.", cfg.Input)
 		}
-		response.DataType = "ratings"
-	} else if len(relevantMovies) != 0 {
-		for _, relevantMovie := range relevantMovies {
-			response.Data = append(response.Data, ResponseData{
-				MovieID:    relevantMovie.MovieID,
-				MovieTitle: data.MovieTitles[relevantMovie.MovieID].Title,
-				Result:     math.Trunc((relevantMovie.Similarity * 100000)) / 100000,
-			})
-		}
-		response.DataType = "similarities"
 	} else {
-		response.Message = fmt.Sprintf("No relevant movies found for user %d. Try using another algorithm.", cfg.Input)
+		response.Message = err
 	}
 	// Send the response
 	w.Header().Set("Content-Type", "application/json")
@@ -163,12 +167,12 @@ func reloadData(algorithm string, maxRecords int, dataDir string) {
 	switch algorithm {
 	case "user":
 		util.LoadData(&data.Users, dataDir+"users.gob", maxRecords)
-	case "item":
+	case "item", "hybrid":
 		util.LoadData(&data.Movies, dataDir+"movies.gob", maxRecords)
 	case "tag":
 		util.LoadData(&data.MovieTags, dataDir+"tags.gob", maxRecords)
-	case "hybrid":
-		util.LoadData(&data.MovieTags, dataDir+"tags.gob", maxRecords)
+	case "title":
+		util.LoadData(&data.MovieTitles, dataDir+"movieTitles.gob", maxRecords)
 	}
 }
 
@@ -177,44 +181,15 @@ func performRecommendation(cfg *config.Config, data *Data) ([]model.Rating, []mo
 	relevantMovies := make([]model.SimilarMovie, 0, len(data.MovieTitles))
 	switch cfg.Algorithm {
 	case "user":
-		if _, exists := data.Users[cfg.Input]; !exists {
-			fmt.Println("User ID not found in current dataset. Please try with another ID.")
-			return nil, nil
-		}
 		ratingForecasts = RecommendBasedOnUser(cfg, &data.Users, &data.MovieTitles)
 	case "item":
-		if _, exists := data.Movies[cfg.Input]; !exists {
-			fmt.Println("Movie ID not found in current dataset. Please try with another ID.")
-			return nil, nil
-		}
 		ratingForecasts = RecommendBasedOnItem(cfg, &data.Movies, cfg.Input)
 	case "tag":
-		if _, exists := data.MovieTags[cfg.Input]; !exists {
-			fmt.Println("Movie ID not found in current dataset. Please try with another ID.")
-			return nil, nil
-		}
 		relevantMovies = RecommendBasedOnTag(cfg, &data.MovieTags)
 	case "title":
-		if _, exists := data.MovieTitles[cfg.Input]; !exists {
-			fmt.Println("Movie ID not found in current dataset. Please try with another ID.")
-			return nil, nil
-		}
 		relevantMovies = RecommendBasedOnTitle(cfg, &data.MovieTitles)
 	case "hybrid":
-		if _, exists := data.Users[cfg.Input]; !exists {
-			fmt.Println("User ID not found in current dataset. Please try with another ID.")
-			return nil, nil
-		}
-		selectedUserRatings := data.Users[cfg.Input].MovieRatings
-		if len(selectedUserRatings) < medianRatedMoviesPerUser(&data.Users) {
-			// If the user has rated more movies than the median of all users we consider that his
-			// taste in movies can be estimated accuratelly and thus we apply user-user similarity
-			relevantMovies = RecommendHybrid(cfg, selectedUserRatings, &data.MovieTitles, &data.Movies, &data.MovieTags)
-		} else {
-			// If the user has rated relatively little movies (eg. new user) title and tag based
-			// recommendation on the movies he has rated will give more accurate results
-			ratingForecasts = RecommendBasedOnUser(cfg, &data.Users, &data.MovieTitles)
-		}
+		relevantMovies = RecommendHybrid(cfg, &data.MovieTitles, &data.Movies, &data.MovieTags)
 	}
 	return ratingForecasts, relevantMovies
 }
@@ -234,26 +209,42 @@ func printRecommendations(cfg *config.Config, ratingForecasts []model.Rating, re
 				i+1, recommendation.MovieID, movieTitles[recommendation.MovieID].Title, recommendation.Rating,
 			)
 		}
-	case "tag", "title":
+	case "tag", "title", "hybrid":
 		if len(relevantMovies) == 0 {
 			fmt.Printf("No relevant movies found for movie %d. Try using another algorithm.\n", cfg.Input)
 			break
 		}
 		fmt.Printf("Top movie recommendations for movie %d are:\n", cfg.Input)
 		for i, recommendation := range relevantMovies {
-			fmt.Printf("%d: ID: %d, Title: %s => %.2f\n", i+1, recommendation.MovieID, movieTitles[recommendation.MovieID].Title, recommendation.Similarity)
-		}
-	case "hybrid":
-		if len(ratingForecasts) != 0 {
-			for i, recommendation := range ratingForecasts {
-				fmt.Printf("%d: ID: %d, Title: %s => %.2f\n", i+1, recommendation.MovieID, movieTitles[recommendation.MovieID].Title, recommendation.Rating)
-			}
-		} else if len(relevantMovies) != 0 {
-			for i, recommendation := range relevantMovies {
-				fmt.Printf("%d: ID: %d, Title: %s => %.5f\n", i+1, recommendation.MovieID, movieTitles[recommendation.MovieID].Title, recommendation.Similarity)
-			}
-		} else {
-			fmt.Printf("No relevant movies found for user %d. Try using another algorithm.\n", cfg.Input)
+			fmt.Printf("%d: ID: %d, Title: %s => %.5f\n", i+1, recommendation.MovieID, movieTitles[recommendation.MovieID].Title, recommendation.Similarity)
 		}
 	}
+}
+
+// Checks if the request can be satisfied for the given input.
+// Returns empty string if request is feasible, error message if not.
+func checkRequestFeasibility(algorithm string, input int) string {
+	switch algorithm {
+	case "user":
+		if _, exists := data.Users[input]; !exists {
+			return "User ID not found in current dataset. Please try with another ID."
+		}
+	case "item":
+		if _, exists := data.Movies[input]; !exists {
+			return "Movie ID not found in current dataset. Please try with another ID."
+		}
+	case "tag":
+		if _, exists := data.MovieTags[input]; !exists {
+			return "Movie ID not found in current dataset. Please try with another ID."
+		}
+	case "title":
+		if _, exists := data.MovieTitles[input]; !exists {
+			return "Movie ID not found in current dataset. Please try with another ID."
+		}
+	case "hybrid":
+		if _, exists := data.MovieTitles[input]; !exists {
+			return "Movie ID not found in current dataset. Please try with another ID."
+		}
+	}
+	return ""
 }

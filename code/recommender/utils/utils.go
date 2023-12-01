@@ -9,15 +9,13 @@ import (
 	"strings"
 )
 
-/*
-Split a given $set into chunks of $chunkSize Returns
-a slice of chunks containing the initial $set data
-*/
-func GenerateChunkFromSet(set []int, chunkSize int) [][]int {
-	if chunkSize <= 0 {
-		chunkSize = 1
+// Returns a slice of $numThread chunks (slices) containing the initial $set data
+func GenerateChunkFromSet(set []int, numThreads int) [][]int {
+	if numThreads <= 0 {
+		numThreads = 1
 	}
-	chunks := make([][]int, 0, (len(set)+chunkSize-1)/chunkSize)
+	chunkSize := (len(set) + numThreads - 1) / numThreads
+	chunks := make([][]int, 0, numThreads)
 	for i := 0; i < len(set); i += chunkSize {
 		end := i + chunkSize
 		if end > len(set) {
@@ -141,7 +139,6 @@ func CreateBoolVectors[T comparable](set1 []T, set2 []T) (vectorA []bool, vector
 			}
 		}
 	}
-	fmt.Println(len(vectorA), len(vectorB))
 	return vectorA, vectorB
 }
 

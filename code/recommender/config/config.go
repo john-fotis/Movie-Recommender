@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -45,14 +46,16 @@ func InitRecommender() (Config, error) {
 		"OR\n" +
 		"recommender -d directory_of_data -u",
 	)
+	dirNotFoundMsg := fmt.Sprintf("Please execute the preprocess binary before recommender.\n"+
+		"This binary will generate the preprocessed files in '%s' directory.\n"+
+		"Command: go run %s -d %s", *dataDir, "preprocess/preprocess.go", *dataDir)
 
-	// Check if required flags are provided.
 	if *dataDir == "" {
 		return Config{}, errors.New(usageMsg)
 	}
 	// Check if the data directory exists.
 	if _, err := os.Stat(*dataDir); os.IsNotExist(err) {
-		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' directory does not exist", *dataDir)))
+		log.Fatalf(fmt.Sprintf("'%s' directory does not exist.\n%s", *dataDir, dirNotFoundMsg))
 	}
 	if len(*dataDir) == 0 || (*dataDir)[len(*dataDir)-1] != '/' {
 		*dataDir += "/"
@@ -61,19 +64,19 @@ func InitRecommender() (Config, error) {
 	// Check if all necessary files exist
 	ratingsFile := filepath.Join(*dataDir, "users.gob")
 	if _, err := os.Stat(ratingsFile); os.IsNotExist(err) {
-		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found", ratingsFile)))
+		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", ratingsFile)))
 	}
 	movieTitlesFile := filepath.Join(*dataDir, "movieTitles.gob")
 	if _, err := os.Stat(movieTitlesFile); os.IsNotExist(err) {
-		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found", movieTitlesFile)))
+		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", movieTitlesFile)))
 	}
 	moviesFile := filepath.Join(*dataDir, "movies.gob")
 	if _, err := os.Stat(moviesFile); os.IsNotExist(err) {
-		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found", moviesFile)))
+		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", moviesFile)))
 	}
 	tagsFile := filepath.Join(*dataDir, "tags.gob")
 	if _, err := os.Stat(tagsFile); os.IsNotExist(err) {
-		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found", tagsFile)))
+		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", tagsFile)))
 	}
 
 	if !*enableUI {
@@ -120,9 +123,9 @@ func InitRecommender() (Config, error) {
 	switch *algorithm {
 	case "user":
 		cfg.MaxUsers = *maxRecords
-	case "item":
+	case "item", "hybrid":
 		cfg.MaxMovies = *maxRecords
-	case "tag", "hybrid":
+	case "tag":
 		cfg.MaxTags = *maxRecords
 	case "title":
 		cfg.MaxTitles = *maxRecords
@@ -147,21 +150,21 @@ func InitPreprocess() (Config, error) {
 
 	// Check if the data directory exists.
 	if _, err := os.Stat(*dataDir); os.IsNotExist(err) {
-		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' directory does not exist", *dataDir)))
+		log.Fatal(fmt.Sprintf("'%s' directory does not exist.", *dataDir))
 	}
 
 	// Check if all necessary files exist
 	ratingsFile := filepath.Join(*dataDir, "ratings.csv")
 	if _, err := os.Stat(ratingsFile); os.IsNotExist(err) {
-		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found", ratingsFile)))
+		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", ratingsFile)))
 	}
 	moviesFile := filepath.Join(*dataDir, "movies.csv")
 	if _, err := os.Stat(moviesFile); os.IsNotExist(err) {
-		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found", moviesFile)))
+		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", moviesFile)))
 	}
 	tagsFile := filepath.Join(*dataDir, "tags.csv")
 	if _, err := os.Stat(tagsFile); os.IsNotExist(err) {
-		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found", tagsFile)))
+		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", tagsFile)))
 	}
 
 	// Check if any validation failed

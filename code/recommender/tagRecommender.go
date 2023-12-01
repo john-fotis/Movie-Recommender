@@ -118,6 +118,7 @@ func getAllMovieTagStrings(movieID int, movieTags model.MovieTags) []string {
 // Function to gather the tag strings for a movie
 func gatherMovieTagStrings(movie model.MovieTags) []string {
 	tagStrings := make([]string, 0)
+	// Retrieving tags from countTagOccurrences ensures each tag is appended at most once
 	for tag := range countTagOccurrences(movie) {
 		tagStrings = append(tagStrings, tag)
 	}

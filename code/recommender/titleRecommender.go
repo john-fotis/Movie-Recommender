@@ -39,10 +39,11 @@ func RecommendBasedOnTitle(cfg *config.Config, movieTitles *map[int]model.MovieT
 		}
 		movieIDs = append(movieIDs, movieID)
 	}
-	if numThreads > len(movieIDs) {
-		numThreads = len(movieIDs)
+	numChunks := numThreads * 10
+	if numChunks > len(movieIDs) {
+		numChunks = len(movieIDs)
 	}
-	movieChunks := util.GenerateChunkFromSet(movieIDs, numThreads)
+	movieChunks := util.GenerateChunkFromSet(movieIDs, numChunks)
 	// The final slice of similar movier from all routines
 	similarMovies := make([]model.SimilarMovie, 0, len(*movieTitles))
 	for _, movieChunk := range movieChunks {
