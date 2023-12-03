@@ -5,7 +5,7 @@ import (
 	"recommender/helpers"
 )
 
-// Returns a map of {token:IDFScore} pairs for every token in all documents
+// Returns a map of {token:IDFScore} pairs for every token in every document
 func IDF(documents []string) map[string]float64 {
 	// Characters to remove from the documents
 	idfMap := make(map[string]float64)

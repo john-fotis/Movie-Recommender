@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"recommender/algorithms"
 	"recommender/config"
 	"recommender/helpers"
@@ -11,16 +12,17 @@ import (
 )
 
 func RecommendBasedOnTitle(cfg *config.Config, movieTitles *map[int]model.MovieTitle) []model.SimilarMovie {
+	fmt.Printf("Working with %d movie titles.\n", len(*movieTitles))
 	util.StartProfiling("title")
 	idfMap := make(map[string]float64, 0)
 	selectedMovieTFMap := make(map[string]float64, 0)
 	selectedMovieTitleTokens := make([]string, 0)
-	titleSlice := make([]string, 0, len(*movieTitles))
+	totalTitles := make([]string, 0, len(*movieTitles))
 	for _, movie := range *movieTitles {
-		titleSlice = append(titleSlice, movie.Title)
+		totalTitles = append(totalTitles, movie.Title)
 	}
 	// Calculate IDF for all movie titles to be used for Cosine or Pearson
-	idfMap = algorithms.IDF(titleSlice)
+	idfMap = algorithms.IDF(totalTitles)
 	// Calculate TF vector for the selected movie to be used for Cosine or Pearson
 	selectedMovieTFMap = algorithms.TF((*movieTitles)[cfg.Input].Title)
 	// Extract selected movie title tokens to be used for Jaccard or Dice
@@ -34,6 +36,7 @@ func RecommendBasedOnTitle(cfg *config.Config, movieTitles *map[int]model.MovieT
 			continue
 		}
 		movieTitleTokens := helpers.ExtractTokensFromStr((*movieTitles)[movieID].Title)
+		// Skip current movie if it has not at least one common token with the selected movie.
 		if len(algorithms.Intersection[string](selectedMovieTitleTokens, movieTitleTokens)) == 0 {
 			continue
 		}

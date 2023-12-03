@@ -96,19 +96,17 @@ func GetTagOccurenceVectors(movie1TagOccurences map[string]int, movie2TagOccuren
 /*
 Generate 2 vectors which contain the results of TF.IDF multiplication based on an IDF
 map consisted of {token:IDFscore} pairs and two TF maps consisted of {token:TFscore}.
+Notice: Priority is given to tfMap1, which means after all tokens of tfMap1 are processed, the
+rest tokens of tfMap2 (if any) will be ignored. Final vectors length is equal to len(tfMap1).
 */
 func GetTfIdfVectors(idfMap map[string]float64, tfMap1, tfMap2 map[string]float64) ([]float64, []float64) {
 	vectorA, vectorB := make([]float64, 0), make([]float64, 0)
 	for token, idf := range idfMap {
 		_, exists1 := tfMap1[token]
 		_, exists2 := tfMap2[token]
-		// If token doesn't exist in any of the TF maps skip it, no need to keep pairs of zeros
-		if exists1 || exists2 {
-			if exists1 {
-				vectorA = append(vectorA, tfMap1[token]*idf)
-			} else {
-				vectorA = append(vectorA, 0)
-			}
+		// Skip token if it doesn't exist in TF map1
+		if exists1 {
+			vectorA = append(vectorA, tfMap1[token]*idf)
 			if exists2 {
 				vectorB = append(vectorB, tfMap2[token]*idf)
 			} else {

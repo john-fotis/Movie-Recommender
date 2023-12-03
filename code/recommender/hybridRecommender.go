@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"recommender/config"
 	model "recommender/models"
 	util "recommender/utils"
@@ -8,11 +9,13 @@ import (
 )
 
 func RecommendHybrid(cfg *config.Config, titles *map[int]model.MovieTitle, movies *map[int]model.Movie, tags *map[int]model.MovieTags) []model.SimilarMovie {
+	totalRatings := 0
+	for _, movie := range *movies {
+		totalRatings += len(movie.UserRatings)
+	}
+	fmt.Printf("Working with %d movie ratings.\n", totalRatings)
+	util.StartProfiling("hybrid")
 	finalSimilarMovies := make([]model.SimilarMovie, 0)
-	knownMovieStats := make(map[int]struct {
-		Sum   float64
-		Count int
-	})
 	// Combine item-item, title & tag collaborative filtering and sort all
 	// result-slices for more efficient calulcations of average similarity.
 	movieCfg := config.Config{Similarity: cfg.Similarity}
@@ -37,23 +40,12 @@ func RecommendHybrid(cfg *config.Config, titles *map[int]model.MovieTitle, movie
 		similarMovieByTitle := similarMoviesByTitle[idxTitle]
 		similarMovieByTag := similarMoviesByTag[idxTag]
 		if similarMovie.MovieID == similarMovieByTitle.MovieID && similarMovie.MovieID == similarMovieByTag.MovieID {
-			// Combine the 3 similarity scores using 10%-50%-40% weights
-			currentSimilarity := 0.1*similarMovie.Similarity*0.5*similarMovieByTitle.Similarity + 0.4*similarMovieByTag.Similarity
-			if existingStats, exists := knownMovieStats[similarMovie.MovieID]; exists {
-				// If the movie has already some stats, this means it came out similar to at least
-				// one more movie the user has rated. Append data to calc average stats at the end.
-				existingStats.Sum += currentSimilarity
-				existingStats.Count++
-				knownMovieStats[similarMovie.MovieID] = existingStats
-			} else {
-				knownMovieStats[similarMovie.MovieID] = struct {
-					Sum   float64
-					Count int
-				}{
-					Sum:   currentSimilarity,
-					Count: 1,
-				}
-			}
+			// Combine the 3 similarity scores using 20%-40%-40% weights
+			similarity := 0.2*similarMovie.Similarity*0.4*similarMovieByTitle.Similarity + 0.4*similarMovieByTag.Similarity
+			finalSimilarMovies = append(finalSimilarMovies, model.SimilarMovie{
+				MovieID:    similarMovie.MovieID,
+				Similarity: similarity,
+			})
 			// Move to the next item in all slices
 			idxMovie++
 			idxTitle++
@@ -70,13 +62,6 @@ func RecommendHybrid(cfg *config.Config, titles *map[int]model.MovieTitle, movie
 				idxTag++
 			}
 		}
-	}
-	// Calculate average similarities for all movies similar to the requested movie
-	for movieID, movieStats := range knownMovieStats {
-		finalSimilarMovies = append(finalSimilarMovies, model.SimilarMovie{
-			MovieID:    movieID,
-			Similarity: movieStats.Sum / float64(movieStats.Count),
-		})
 	}
 	sort.SliceStable(finalSimilarMovies, func(i, j int) bool {
 		return finalSimilarMovies[i].Similarity > finalSimilarMovies[j].Similarity

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"recommender/algorithms"
 	"recommender/config"
 	model "recommender/models"
@@ -10,6 +11,11 @@ import (
 )
 
 func RecommendBasedOnUser(cfg *config.Config, users *map[int]model.User, movieTitles *map[int]model.MovieTitle) []model.Rating {
+	totalRatings := 0
+	for _, user := range *users {
+		totalRatings += len(user.MovieRatings)
+	}
+	fmt.Printf("Working with %d user ratings.\n", totalRatings)
 	util.StartProfiling("user")
 	selectedUser := (*users)[cfg.Input]
 	similarUsers := findSimilarUsers(cfg, users)

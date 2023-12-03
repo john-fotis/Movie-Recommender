@@ -25,13 +25,13 @@ func main() {
 		return
 	}
 
-	users := make(map[int]model.User)
-	util.LoadCSVData(&users, cfg.DataDir+"ratings.csv")
-	writeGOBToFile(users, preprocessedFilesDir+"users.gob")
-
 	movieTitles := make(map[int]model.MovieTitle)
 	util.LoadCSVData(&movieTitles, cfg.DataDir+"movies.csv")
 	writeGOBToFile(movieTitles, preprocessedFilesDir+"movieTitles.gob")
+
+	users := make(map[int]model.User)
+	util.LoadCSVData(&users, cfg.DataDir+"ratings.csv")
+	writeGOBToFile(users, preprocessedFilesDir+"users.gob")
 
 	movies := make(map[int]model.Movie)
 	util.LoadCSVData(&movies, cfg.DataDir+"ratings.csv")
@@ -42,6 +42,7 @@ func main() {
 	writeGOBToFile(tags, preprocessedFilesDir+"tags.gob")
 }
 
+// Stores a data interface into a file using Go Binary format
 func writeGOBToFile(data interface{}, filePath string) {
 	file, err := os.Create(filePath)
 	if err != nil {

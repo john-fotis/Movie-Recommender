@@ -7,7 +7,6 @@ func ExtractTokensFromStr(str string) []string {
 	irrelevantChars := []string{".", ",", ":", "(", ")", "\"", "'", "|", "!", "?", "#", ";"}
 	for _, char := range irrelevantChars {
 		str = strings.ReplaceAll(str, char, "")
-		str = strings.ToLower(str)
 	}
-	return strings.Fields(str)
+	return strings.Fields(strings.ToLower(str))
 }

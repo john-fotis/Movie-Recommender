@@ -13,6 +13,13 @@ import (
 var cachedTagStrings sync.Map
 
 func RecommendBasedOnTag(cfg *config.Config, movieTags *map[int]model.MovieTags) []model.SimilarMovie {
+	totalTags := 0
+	for movieID := range *movieTags {
+		for _, userTags := range (*movieTags)[movieID].UserTags {
+			totalTags += len(userTags.Tags)
+		}
+	}
+	fmt.Printf("Working with %d movie tags.\n", totalTags)
 	util.StartProfiling("tag")
 	selectedMovieTags := make([]string, 0)
 	for _, userTags := range (*movieTags)[cfg.Input].UserTags {
@@ -53,7 +60,7 @@ func RecommendBasedOnTag(cfg *config.Config, movieTags *map[int]model.MovieTags)
 				for _, userTags := range otherMovieUsersThatTagged {
 					otherMovieTags = append(otherMovieTags, userTags.Tags...)
 				}
-				// Skip movie if it has no ratings
+				// Skip movie if it has no tags
 				if len(otherMovieTags) == 0 {
 					continue
 				}

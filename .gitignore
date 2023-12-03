@@ -26,3 +26,6 @@ __debug_bin*
 code/assets
 code/recommender/preprocess/data
 code/recommender/profiling
+# Binaries
+code/recommender/recommender
+code/recommender/preprocess/preprocess

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"recommender/algorithms"
 	"recommender/config"
 	model "recommender/models"
@@ -10,6 +11,11 @@ import (
 )
 
 func RecommendBasedOnItem(cfg *config.Config, movies *map[int]model.Movie, userID int) []model.Rating {
+	totalRatings := 0
+	for _, movie := range *movies {
+		totalRatings += len(movie.UserRatings)
+	}
+	fmt.Printf("Working with %d movie ratings.\n", totalRatings)
 	util.StartProfiling("item")
 	user := model.User{MovieRatings: make(map[int]float32)}
 	// Gather all the user's ratings

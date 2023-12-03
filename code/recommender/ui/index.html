@@ -13,7 +13,7 @@
             <h1>Recommender System</h1>
             <form id="recommendationForm">
                 <div class="form-group">
-                    <label for="similarity">Similarity:</label>
+                    <label for="similarity">Similarity</label>
                     <select class="form-control" id="similarity" name="similarity" required>
                         <option value="jaccard">Jaccard</option>
                         <option value="dice">Dice</option>
@@ -22,7 +22,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="algorithm">Algorithm:</label>
+                    <label for="algorithm">Algorithm</label>
                     <select class="form-control" id="algorithm" name="algorithm" required>
                         <option value="user">User</option>
                         <option value="item">Item</option>
@@ -32,21 +32,22 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="recommendations">Recommendations:</label>
+                    <label for="recommendations">Recommendations</label>
                     <input type="number" class="form-control" id="recommendations" name="recommendations" min="1"
                         required>
                 </div>
                 <div class="form-group">
-                    <label for="input">Input:</label>
+                    <label for="input">Input</label>
                     <input type="number" class="form-control" id="input" name="input" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label for="maxRecords">Max Records:</label>
+                    <label for="maxRecords">Max Records</label>
                     <input type="number" class="form-control" id="maxRecords" name="maxRecords" min="-1">
                 </div>
                 <button type="submit" class="btn btn-primary" id="submitButton">Get Recommendations</button>
                 <div id="loadingIndicator" style="display: none;">Loading...</div>
             </form>
+            <div id="metaInfo"></div>
             <div id="recommendationResults"></div>
         </div>
 

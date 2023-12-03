@@ -164,8 +164,8 @@ func TestGetTfIdfVectors(t *testing.T) {
 		"word4": 0.5,
 		"word5": 0.5,
 	}
-	expectedVectorA := []float64{0.05, 0.01, 0.05, 0}
-	expectedVectorB := []float64{0, 0, 0.05, 0.15}
+	expectedVectorA := []float64{0.05, 0.01, 0.05}
+	expectedVectorB := []float64{0, 0, 0.05}
 	vectorA, vectorB := util.GetTfIdfVectors(idfMap, tfMap1, tfMap2)
 	if len(vectorA) != len(vectorB) || len(vectorA) != len(expectedVectorA) {
 		t.Errorf("Vector A or Vector B not of the expected size.")

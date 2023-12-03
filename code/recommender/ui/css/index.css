@@ -15,13 +15,19 @@ h1 {
     margin-bottom: 20px;
 }
 
-#similarity,
-#algorithm {
+label {
+    font-weight: bold;
+}
+
+#metaInfo {
+    font-weight: bold;
+}
+
+#similarity, #algorithm {
     text-align: center;
 }
 
-#similarity option,
-#algorithm option {
+#similarity option, #algorithm option {
     text-align: center;
 }
 

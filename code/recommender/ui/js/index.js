@@ -3,6 +3,7 @@ document.getElementById('recommendationForm').addEventListener('submit', functio
     event.preventDefault();
     document.getElementById('submitButton').setAttribute('disabled', 'disabled');
     // Clear old content if it exists
+    document.getElementById('metaInfo').innerHTML = '';
     document.getElementById('recommendationResults').innerHTML = '';
     // Make loading indicator visible
     document.getElementById('loadingIndicator').style.display = 'block';
@@ -44,6 +45,10 @@ document.getElementById('recommendationForm').addEventListener('submit', functio
                 // If message is not empty, something went wrong with the query
                 document.getElementById('recommendationResults').innerText = responseData.message;
             } else {
+                const inputIsUserID = queryParams.algorithm === 'user' || queryParams.algorithm === "item";
+                if (!inputIsUserID) {
+                    document.getElementById('metaInfo').innerText = `Results for movie ${ responseData.metaInfo }`;
+                }
                 // Create a table of results inside the div with id="recommendationResults"
                 const table = document.createElement('table');
                 table.classList.add('table');
@@ -58,8 +63,7 @@ document.getElementById('recommendationForm').addEventListener('submit', functio
                 thCol2.innerText = 'Movie Title';
                 const thCol3 = document.createElement('th');
                 thCol3.scope = 'col';
-                thCol3.innerText = queryParams.algorithm === 'user' || queryParams.algorithm === "item"
-                    ? 'Forecasted rating' : 'Similarity';
+                thCol3.innerText = inputIsUserID ? 'Forecasted rating' : 'Similarity';
                 trHead.appendChild(thCol1);
                 trHead.appendChild(thCol2);
                 trHead.appendChild(thCol3);
