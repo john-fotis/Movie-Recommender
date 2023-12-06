@@ -30,8 +30,13 @@ type Config struct {
 	WebServer  bool
 }
 
+type PreprocessConfig struct {
+	DataDir          string
+	ProcessedDataDir string
+}
+
 func InitRecommender() (Config, error) {
-	dataDir := flag.String("d", "", "Directory of data")
+	dataDir := flag.String("d", "", "Directory of processed data")
 	numRecommendations := flag.Int("n", 0, "Number of recommendations")
 	similarityMetric := flag.String("s", "", "Similarity metric")
 	algorithm := flag.String("a", "", "Algorithm")
@@ -48,7 +53,8 @@ func InitRecommender() (Config, error) {
 	)
 	dirNotFoundMsg := fmt.Sprintf("Please execute the preprocess binary before recommender.\n"+
 		"This binary will generate the preprocessed files in '%s' directory.\n"+
-		"Command: go run %s -d %s", *dataDir, "preprocess/preprocess.go", *dataDir)
+		"Command: go run %s -d /path/to/csv/dataset -p %s", *dataDir, "preprocess/preprocess.go", *dataDir,
+	)
 
 	if *dataDir == "" {
 		return Config{}, errors.New(usageMsg)
@@ -134,18 +140,23 @@ func InitRecommender() (Config, error) {
 	return cfg, nil
 }
 
-func InitPreprocess() (Config, error) {
-	dataDir := flag.String("d", "", "Directory of data")
+func InitPreprocess() (PreprocessConfig, error) {
+	dataDir := flag.String("d", "", "Original data directory (CSVs)")
+	processedDataDir := flag.String("p", "", "Processed data directory")
 	flag.Parse()
 
 	var validationErrors []error
+	usageMsg := fmt.Sprintln("Usage: preprocess -d data_directory -p processed_data_directory")
 
 	// Check if required flags are provided.
-	if *dataDir == "" {
-		return Config{}, errors.New("Usage: preprocess -d directory_of_data")
+	if *dataDir == "" || *processedDataDir == "" {
+		return PreprocessConfig{}, errors.New(usageMsg)
 	}
 	if len(*dataDir) == 0 || (*dataDir)[len(*dataDir)-1] != '/' {
 		*dataDir += "/"
+	}
+	if len(*processedDataDir) == 0 || (*processedDataDir)[len(*processedDataDir)-1] != '/' {
+		*processedDataDir += "/"
 	}
 
 	// Check if the data directory exists.
@@ -169,10 +180,10 @@ func InitPreprocess() (Config, error) {
 
 	// Check if any validation failed
 	if len(validationErrors) > 0 {
-		return Config{}, addToErrorList(validationErrors)
+		return PreprocessConfig{}, addToErrorList(validationErrors)
 	}
 
-	return Config{DataDir: *dataDir}, nil
+	return PreprocessConfig{DataDir: *dataDir, ProcessedDataDir: *processedDataDir}, nil
 }
 
 func addToErrorList(errs []error) error {

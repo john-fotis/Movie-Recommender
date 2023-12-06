@@ -19,13 +19,14 @@
 
 # Go workspace file
 go.work
+
 *.zip
-*.pdf
-todo*
 __debug_bin*
-code/assets
-code/recommender/preprocess/data
-code/recommender/profiling
+# Dataset - original CSVs
+ml-latest
+# App generated folders
+preprocessed-data
+profiling
 # Binaries
-code/recommender/recommender
-code/recommender/preprocess/preprocess
+recommender
+preprocess/preprocess

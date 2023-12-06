@@ -20,8 +20,5 @@ $(PREPROCESS_BIN): $(PREPROCESS_SRC)
 clean:
 	rm -f $(RECOMMENDER_BIN) $(PREPROCESS_BIN)
 
-clean-preprocessed-data:
-	rm -rf $(PREPROCESS_DIR)/data
-
 test:
 	go test -count=1 $(TEST_DIR)
