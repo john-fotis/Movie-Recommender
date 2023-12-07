@@ -21,24 +21,22 @@ type Config struct {
 	Similarity      string
 	Algorithm       string
 	Input           int
-	// max{X} = -1 means read all
-	MaxRecords int
-	MaxUsers   int
-	MaxTitles  int
-	MaxMovies  int
-	MaxTags    int
-	WebServer  bool
-	K          int
-	NumThreads int
+	MaxRecords      int
+	MaxUsers        int
+	MaxTitles       int
+	MaxMovies       int
+	MaxTags         int
+	WebServer       bool
+	K               int
+	NumThreads      int
 }
 
 type PreprocessConfig struct {
-	DataDir          string
-	ProcessedDataDir string
+	DataDir string
 }
 
 func InitRecommender() (Config, error) {
-	dataDir := flag.String("d", "", "Directory of processed data")
+	dataDir := "preprocessed-data"
 	numRecommendations := flag.Int("n", 0, "Number of recommendations")
 	similarityMetric := flag.String("s", "", "Similarity metric")
 	algorithm := flag.String("a", "", "Algorithm")
@@ -49,40 +47,37 @@ func InitRecommender() (Config, error) {
 
 	var validationErrors []error
 	usageMsg := fmt.Sprintln("\nUsage:\n" +
-		"recommender -d directory_of_data -n number_of_recommendations -s similarity_metric -a algorithm -i input (-r maxRecordsToRead)\n" +
+		"recommender -n number_of_recommendations -s similarity_metric -a algorithm -i input (-r maxRecordsToRead)\n" +
 		"OR\n" +
-		"recommender -d directory_of_data -u",
+		"recommender -u",
 	)
 	dirNotFoundMsg := fmt.Sprintf("Please execute the preprocess binary before recommender.\n"+
 		"This binary will generate the preprocessed files in '%s' directory.\n"+
-		"Command: go run %s -d /path/to/csv/dataset -p %s", *dataDir, "preprocess/preprocess.go", *dataDir,
+		"Command: go run preprocess/preprocess.go -d /path/to/csv/dataset\n", dataDir,
 	)
 
-	if *dataDir == "" {
-		return Config{}, errors.New(usageMsg)
-	}
 	// Check if the data directory exists.
-	if _, err := os.Stat(*dataDir); os.IsNotExist(err) {
-		log.Fatalf(fmt.Sprintf("'%s' directory does not exist.\n%s", *dataDir, dirNotFoundMsg))
+	if _, err := os.Stat(dataDir); os.IsNotExist(err) {
+		log.Fatalf(fmt.Sprintf("'%s' directory does not exist.\n%s", dataDir, dirNotFoundMsg))
 	}
-	if len(*dataDir) == 0 || (*dataDir)[len(*dataDir)-1] != '/' {
-		*dataDir += "/"
+	if len(dataDir) == 0 || (dataDir)[len(dataDir)-1] != '/' {
+		dataDir += "/"
 	}
 
 	// Check if all necessary files exist
-	ratingsFile := filepath.Join(*dataDir, "users.gob")
+	ratingsFile := filepath.Join(dataDir, "users.gob")
 	if _, err := os.Stat(ratingsFile); os.IsNotExist(err) {
 		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", ratingsFile)))
 	}
-	movieTitlesFile := filepath.Join(*dataDir, "movieTitles.gob")
+	movieTitlesFile := filepath.Join(dataDir, "movieTitles.gob")
 	if _, err := os.Stat(movieTitlesFile); os.IsNotExist(err) {
 		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", movieTitlesFile)))
 	}
-	moviesFile := filepath.Join(*dataDir, "movies.gob")
+	moviesFile := filepath.Join(dataDir, "movies.gob")
 	if _, err := os.Stat(moviesFile); os.IsNotExist(err) {
 		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", moviesFile)))
 	}
-	tagsFile := filepath.Join(*dataDir, "tags.gob")
+	tagsFile := filepath.Join(dataDir, "tags.gob")
 	if _, err := os.Stat(tagsFile); os.IsNotExist(err) {
 		validationErrors = append(validationErrors, errors.New(fmt.Sprintf("'%s' was not found.", tagsFile)))
 	}
@@ -115,7 +110,7 @@ func InitRecommender() (Config, error) {
 	}
 
 	cfg := Config{
-		DataDir:         *dataDir,
+		DataDir:         dataDir,
 		Recommendations: *numRecommendations,
 		Similarity:      *similarityMetric,
 		Algorithm:       *algorithm,
@@ -146,21 +141,17 @@ func InitRecommender() (Config, error) {
 
 func InitPreprocess() (PreprocessConfig, error) {
 	dataDir := flag.String("d", "", "Original data directory (CSVs)")
-	processedDataDir := flag.String("p", "", "Processed data directory")
 	flag.Parse()
 
 	var validationErrors []error
-	usageMsg := fmt.Sprintln("Usage: preprocess -d data_directory -p processed_data_directory")
+	usageMsg := fmt.Sprintln("Usage: preprocess -d /path/to/csv/dataset")
 
 	// Check if required flags are provided.
-	if *dataDir == "" || *processedDataDir == "" {
+	if *dataDir == "" {
 		return PreprocessConfig{}, errors.New(usageMsg)
 	}
 	if len(*dataDir) == 0 || (*dataDir)[len(*dataDir)-1] != '/' {
 		*dataDir += "/"
-	}
-	if len(*processedDataDir) == 0 || (*processedDataDir)[len(*processedDataDir)-1] != '/' {
-		*processedDataDir += "/"
 	}
 
 	// Check if the data directory exists.
@@ -187,7 +178,7 @@ func InitPreprocess() (PreprocessConfig, error) {
 		return PreprocessConfig{}, addToErrorList(validationErrors)
 	}
 
-	return PreprocessConfig{DataDir: *dataDir, ProcessedDataDir: *processedDataDir}, nil
+	return PreprocessConfig{DataDir: *dataDir}, nil
 }
 
 func addToErrorList(errs []error) error {

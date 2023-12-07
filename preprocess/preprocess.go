@@ -18,7 +18,8 @@ func main() {
 		return
 	}
 
-	err = os.MkdirAll(cfg.ProcessedDataDir, 0755)
+	preprocessedDataDir := "preprocessed-data/"
+	err = os.MkdirAll(preprocessedDataDir, 0755)
 	if err != nil {
 		log.Fatalf("Failed to create directory: %v", err)
 		return
@@ -26,19 +27,19 @@ func main() {
 
 	movieTitles := make(map[int]model.MovieTitle)
 	util.LoadCSVData(&movieTitles, cfg.DataDir+"movies.csv")
-	writeGOBToFile(movieTitles, cfg.ProcessedDataDir+"movieTitles.gob")
+	writeGOBToFile(movieTitles, preprocessedDataDir+"movieTitles.gob")
 
 	users := make(map[int]model.User)
 	util.LoadCSVData(&users, cfg.DataDir+"ratings.csv")
-	writeGOBToFile(users, cfg.ProcessedDataDir+"users.gob")
+	writeGOBToFile(users, preprocessedDataDir+"users.gob")
 
 	movies := make(map[int]model.Movie)
 	util.LoadCSVData(&movies, cfg.DataDir+"ratings.csv")
-	writeGOBToFile(movies, cfg.ProcessedDataDir+"movies.gob")
+	writeGOBToFile(movies, preprocessedDataDir+"movies.gob")
 
 	tags := make(map[int]model.MovieTags)
 	util.LoadCSVData(&tags, cfg.DataDir+"tags.csv")
-	writeGOBToFile(tags, cfg.ProcessedDataDir+"tags.gob")
+	writeGOBToFile(tags, preprocessedDataDir+"tags.gob")
 }
 
 // Stores a data interface into a file using Go Binary format

@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-func RecommendBasedOnItem(cfg *config.Config, movies *map[int]model.Movie, userID int) []model.Rating {
+func RecommendBasedOnItem(cfg *config.Config, movies *map[int]model.Movie) []model.Rating {
 	totalRatings := 0
 	for _, movie := range *movies {
 		totalRatings += len(movie.UserRatings)
@@ -20,7 +20,7 @@ func RecommendBasedOnItem(cfg *config.Config, movies *map[int]model.Movie, userI
 	user := model.User{MovieRatings: make(map[int]float32)}
 	// Gather all the user's ratings
 	for movieID := range *movies {
-		rating, exists := (*movies)[movieID].UserRatings[userID]
+		rating, exists := (*movies)[movieID].UserRatings[cfg.Input]
 		if exists {
 			user.MovieRatings[movieID] = rating
 		}
@@ -33,7 +33,7 @@ func RecommendBasedOnItem(cfg *config.Config, movies *map[int]model.Movie, userI
 		// Find similar movies only for movies the user liked
 		if user.MovieRatings[movieID] >= 4 {
 			// Find the top k most similar movies to movieID
-			similarMovies := findSimilarMovies(cfg, movieID, movies)
+			similarMovies := findSimilarMovies(cfg, movieID, movies, cfg.K)
 			currentSimilarMoviesMap := make(map[int]model.SimilarMovie, len(similarMovies))
 			for _, movie := range similarMovies {
 				currentSimilarMoviesMap[movie.MovieID] = movie

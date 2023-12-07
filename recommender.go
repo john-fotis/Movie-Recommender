@@ -207,7 +207,7 @@ func performRecommendation(cfg *config.Config, data *Data) ([]model.Rating, []mo
 	case "user":
 		ratingForecasts = recommenders.RecommendBasedOnUser(cfg, &data.Users, &data.MovieTitles)
 	case "item":
-		ratingForecasts = recommenders.RecommendBasedOnItem(cfg, &data.Movies, cfg.Input)
+		ratingForecasts = recommenders.RecommendBasedOnItem(cfg, &data.Movies)
 	case "tag":
 		relevantMovies = recommenders.RecommendBasedOnTag(cfg, &data.MovieTags)
 	case "title":

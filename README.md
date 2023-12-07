@@ -12,18 +12,18 @@ Optional installations other than Golang are:
     `tree -d .`
     ```
     .
+    ├── algorithms
+    ├── config
+    ├── helpers
     ├── ml-latest
-    └── recommender
-        ├── algorithms
-        ├── config
-        ├── helpers
-        ├── models
-        ├── preprocess
-        ├── tests
-        ├── ui
-        │   ├── css
-        │   └── js
-        └── utils
+    ├── models
+    ├── preprocess
+    ├── recommenders
+    ├── tests
+    ├── ui
+    │   ├── css
+    │   └── js
+    └── utils
     ```
 2. From now on, working directory is `recommender`
     - `cd ./recommender`
@@ -34,12 +34,12 @@ Optional installations other than Golang are:
     2. `conda activate go`
 
 * Compile & run each the binaries at once with:
-    1. Preprocess: `go run preprocess/preprocess.go -d ../ml-latest -p preprocessed-data`
-    2. Recommender: `go run recommender -d preprocessed-data -n 100 -s cosine -a tag -i 6539`
+    1. Preprocess: `go run preprocess/preprocess.go -d ./ml-latest`
+    2. Recommender: `go run recommender -n 100 -s cosine -a tag -i 6539`
         - Note that there is also an optional parameter `-r maxRecords` which limits the dataset depending on the algorithm.
-            + Sample usage: `go run recommender -d preprocessed-data -n 100 -s cosine -a item -i 1 -r 5000`
+            + Sample usage: `go run recommender -n 100 -s cosine -a item -i 1 -r 5000`
             + This uses the first `maxRecords` objects in the dataset, eg. the first 5000 movies with *all* their ratings in the above case.
-    3. UI: `go run recommender -d preprocessed-data -u`
+    3. UI: `go run recommender -u`
         - *Note: Preprocess needs to be executed at least once before recommender to produce the following files:*
         ``` 
             preprocessed-data
@@ -56,9 +56,9 @@ Optional installations other than Golang are:
         + Preprocess: `go build -o preprocess/preprocess preprocess/preprocess.go`
         + Recommender: `go build -o recommender .`
     - Then execute with:
-    1. Preprocess: `./preprocess/preprocess -d ../ml-latest -p preprocessed-data`
-    2. Recommender: `./recommender -d preprocessed-data -n 100 -s cosine -a tag -i 6539`
-    3. UI: `./recommender -d preprocessed-data -u`
+    1. Preprocess: `./preprocess/preprocess -d ./ml-latest`
+    2. Recommender: `./recommender -n 100 -s cosine -a tag -i 6539`
+    3. UI: `./recommender -u`
 
 # Detailed report
 You can find the detailed report regarding the implementation of my recommender app in `./Report.pdf`
