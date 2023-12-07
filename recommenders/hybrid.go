@@ -1,4 +1,4 @@
-package main
+package recommenders
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ func RecommendHybrid(cfg *config.Config, titles *map[int]model.MovieTitle, movie
 	finalSimilarMovies := make([]model.SimilarMovie, 0)
 	// Combine item-item, title & tag collaborative filtering and sort all
 	// result-slices for more efficient calulcations of average similarity.
-	movieCfg := config.Config{Similarity: cfg.Similarity}
+	movieCfg := config.Config{Similarity: cfg.Similarity, NumThreads: cfg.NumThreads}
 	similarMovies := findSimilarMovies(&movieCfg, cfg.Input, movies)
 	sort.SliceStable(similarMovies, func(i, j int) bool {
 		return similarMovies[i].MovieID < similarMovies[j].MovieID

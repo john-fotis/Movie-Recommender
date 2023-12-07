@@ -1,4 +1,4 @@
-package main
+package recommenders
 
 import (
 	"fmt"
@@ -42,10 +42,10 @@ func RecommendBasedOnTag(cfg *config.Config, movieTags *map[int]model.MovieTags)
 		}
 		movieIDs = append(movieIDs, movieID)
 	}
-	if numThreads > len(movieIDs) {
-		numThreads = len(movieIDs)
+	if cfg.NumThreads > len(movieIDs) {
+		cfg.NumThreads = len(movieIDs)
 	}
-	movieChunks := util.GenerateChunkFromSet(movieIDs, numThreads)
+	movieChunks := util.GenerateChunkFromSet(movieIDs, cfg.NumThreads)
 	// The final slice of similar movies from all routines
 	similarMovies := make([]model.SimilarMovie, 0, len(*movieTags))
 	for _, movieChunk := range movieChunks {

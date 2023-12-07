@@ -1,4 +1,4 @@
-package main
+package recommenders
 
 import (
 	"fmt"
@@ -67,10 +67,10 @@ func findSimilarUsers(cfg *config.Config, users *map[int]model.User) []model.Sim
 		}
 		userIDs = append(userIDs, userID)
 	}
-	if numThreads > len(userIDs) {
-		numThreads = len(userIDs)
+	if cfg.NumThreads > len(userIDs) {
+		cfg.NumThreads = len(userIDs)
 	}
-	userChunks := util.GenerateChunkFromSet(userIDs, numThreads)
+	userChunks := util.GenerateChunkFromSet(userIDs, cfg.NumThreads)
 	// The final slice of similar users from all routines
 	similarUsers := make([]model.SimilarUser, 0, len(*users))
 	for _, userChunk := range userChunks {
@@ -111,7 +111,7 @@ func findSimilarUsers(cfg *config.Config, users *map[int]model.User) []model.Sim
 				})
 			}
 			// Keep the top-k most similar users this routine found
-			updateMostSimilarUsers(&localSimilarUsers, k)
+			updateMostSimilarUsers(&localSimilarUsers, cfg.K)
 			// Append local results while protecting shared struct from concurrent writing
 			mu.Lock()
 			similarUsers = append(similarUsers, localSimilarUsers...)
@@ -120,7 +120,7 @@ func findSimilarUsers(cfg *config.Config, users *map[int]model.User) []model.Sim
 	}
 	// Wait for all routines to finish
 	wg.Wait()
-	updateMostSimilarUsers(&similarUsers, k)
+	updateMostSimilarUsers(&similarUsers, cfg.K)
 	return similarUsers
 }
 

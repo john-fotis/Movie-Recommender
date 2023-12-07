@@ -1,4 +1,4 @@
-package main
+package recommenders
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ func RecommendBasedOnItem(cfg *config.Config, movies *map[int]model.Movie, userI
 		// Find similar movies only for movies the user liked
 		if user.MovieRatings[movieID] >= 4 {
 			// Find the top k most similar movies to movieID
-			similarMovies := findSimilarMovies(cfg, movieID, movies, k)
+			similarMovies := findSimilarMovies(cfg, movieID, movies)
 			currentSimilarMoviesMap := make(map[int]model.SimilarMovie, len(similarMovies))
 			for _, movie := range similarMovies {
 				currentSimilarMoviesMap[movie.MovieID] = movie
@@ -98,10 +98,10 @@ func findSimilarMovies(cfg *config.Config, selectedMovieID int, movies *map[int]
 		}
 		movieIDs = append(movieIDs, movieID)
 	}
-	if numThreads > len(movieIDs) {
-		numThreads = len(movieIDs)
+	if cfg.NumThreads > len(movieIDs) {
+		cfg.NumThreads = len(movieIDs)
 	}
-	movieChunks := util.GenerateChunkFromSet(movieIDs, numThreads)
+	movieChunks := util.GenerateChunkFromSet(movieIDs, cfg.NumThreads)
 	// The final slice of similar movies from all routines
 	similarMovies := make([]model.SimilarMovie, 0, len(*movies))
 	for _, movieChunk := range movieChunks {

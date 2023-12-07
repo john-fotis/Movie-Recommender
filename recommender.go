@@ -9,6 +9,7 @@ import (
 	"os"
 	"recommender/config"
 	model "recommender/models"
+	"recommender/recommenders"
 	util "recommender/utils"
 	"runtime"
 	"strconv"
@@ -204,15 +205,15 @@ func performRecommendation(cfg *config.Config, data *Data) ([]model.Rating, []mo
 	relevantMovies := make([]model.SimilarMovie, 0, cfg.Recommendations)
 	switch cfg.Algorithm {
 	case "user":
-		ratingForecasts = RecommendBasedOnUser(cfg, &data.Users, &data.MovieTitles)
+		ratingForecasts = recommenders.RecommendBasedOnUser(cfg, &data.Users, &data.MovieTitles)
 	case "item":
-		ratingForecasts = RecommendBasedOnItem(cfg, &data.Movies, cfg.Input)
+		ratingForecasts = recommenders.RecommendBasedOnItem(cfg, &data.Movies, cfg.Input)
 	case "tag":
-		relevantMovies = RecommendBasedOnTag(cfg, &data.MovieTags)
+		relevantMovies = recommenders.RecommendBasedOnTag(cfg, &data.MovieTags)
 	case "title":
-		relevantMovies = RecommendBasedOnTitle(cfg, &data.MovieTitles)
+		relevantMovies = recommenders.RecommendBasedOnTitle(cfg, &data.MovieTitles)
 	case "hybrid":
-		relevantMovies = RecommendHybrid(cfg, &data.MovieTitles, &data.Movies, &data.MovieTags)
+		relevantMovies = recommenders.RecommendHybrid(cfg, &data.MovieTitles, &data.Movies, &data.MovieTags)
 	}
 	return ratingForecasts, relevantMovies
 }

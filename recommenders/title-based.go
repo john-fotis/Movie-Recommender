@@ -1,4 +1,4 @@
-package main
+package recommenders
 
 import (
 	"fmt"
@@ -42,7 +42,7 @@ func RecommendBasedOnTitle(cfg *config.Config, movieTitles *map[int]model.MovieT
 		}
 		movieIDs = append(movieIDs, movieID)
 	}
-	numChunks := numThreads * 10
+	numChunks := cfg.NumThreads * 10
 	if numChunks > len(movieIDs) {
 		numChunks = len(movieIDs)
 	}

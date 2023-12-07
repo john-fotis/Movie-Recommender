@@ -28,6 +28,8 @@ type Config struct {
 	MaxMovies  int
 	MaxTags    int
 	WebServer  bool
+	K          int
+	NumThreads int
 }
 
 type PreprocessConfig struct {
@@ -124,6 +126,8 @@ func InitRecommender() (Config, error) {
 		MaxMovies:       -1,
 		MaxTags:         -1,
 		WebServer:       *enableUI,
+		K:               128,
+		NumThreads:      8,
 	}
 
 	switch *algorithm {
