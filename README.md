@@ -3,8 +3,8 @@
 
 Optional installations other than Golang are:
 - [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/)
-    + Hash of image I used: d0643508fa49105552c94a523529f4474f91730d3e0d1f168f1700c43ae67595
-- Make (sudo apt install -y make)
+    + Hash of image I used: `d0643508fa49105552c94a523529f4474f91730d3e0d1f168f1700c43ae67595`
+- Make (`sudo apt install -y make`)
 
 # Prepare project structure
 1. Place the dataset CSVs in a folder, eg: `./ml-latest`
@@ -61,4 +61,4 @@ Optional installations other than Golang are:
     3. UI: `./recommender -u`
 
 # Detailed report
-You can find the detailed report regarding the implementation of my recommender app in `./Report.pdf`
+You can find the detailed report regarding the implementation of my recommender app in [Report.pdf](https://github.com/john-fotis/Movie-Recommender/blob/main/Report.pdf)
