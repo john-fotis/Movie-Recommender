@@ -51,7 +51,7 @@ func RecommendHybrid(cfg *config.Config, titles *map[int]model.MovieTitle, movie
 		similarMovieByTag := similarMoviesByTag[idxTag]
 		if similarMovie.MovieID == similarMovieByTitle.MovieID && similarMovie.MovieID == similarMovieByTag.MovieID {
 			// Combine the 3 similarity scores using 20%-40%-40% weights so that the upper limit of similarity remains 1.0
-			similarity := 0.2*similarMovie.Similarity*0.4*similarMovieByTitle.Similarity + 0.4*similarMovieByTag.Similarity
+			similarity := 0.2*similarMovie.Similarity + 0.4*similarMovieByTitle.Similarity + 0.4*similarMovieByTag.Similarity
 			finalSimilarMovies = append(finalSimilarMovies, model.SimilarMovie{
 				MovieID:    similarMovie.MovieID,
 				Similarity: similarity,

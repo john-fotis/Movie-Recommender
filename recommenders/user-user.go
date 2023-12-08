@@ -103,7 +103,7 @@ func findSimilarUsers(cfg *config.Config, users *map[int]model.User) []model.Sim
 					similarity = algorithms.CosineSimilarity[float32](vectorA, vectorB, algorithms.DotProductFloat32)
 				case "pearson":
 					vectorA, vectorB := util.GetMovieRatingVectors(selectedUser, user, selectedUserMovies, userMovies)
-					similarity = algorithms.PearsonSimilarity[float32](vectorA, vectorB)
+					similarity = (algorithms.PearsonSimilarity[float32](vectorA, vectorB) + 1) / 2
 				}
 				localSimilarUsers = append(localSimilarUsers, model.SimilarUser{
 					UserID:     otherUserID,

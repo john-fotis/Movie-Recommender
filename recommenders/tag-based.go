@@ -82,7 +82,7 @@ func RecommendBasedOnTag(cfg *config.Config, movieTags *map[int]model.MovieTags)
 						countTagOccurrences((*movieTags)[cfg.Input]),
 						countTagOccurrences((*movieTags)[otherMovieID]),
 					)
-					similarity = algorithms.PearsonSimilarity[int](vectorA, vectorB)
+					similarity = (algorithms.PearsonSimilarity[int](vectorA, vectorB) + 1) / 2
 				}
 				localSimilarMovies = append(localSimilarMovies, model.SimilarMovie{
 					MovieID: otherMovieID, Similarity: similarity,

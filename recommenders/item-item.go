@@ -133,7 +133,7 @@ func findSimilarMovies(cfg *config.Config, selectedMovieID int, movies *map[int]
 					similarity = algorithms.CosineSimilarity[float32](vectorA, vectorB, algorithms.DotProductFloat32)
 				case "pearson":
 					vectorA, vectorB := util.GetUserRatingVectors(selectedMovie, otherMovie, selectedMovieUsers, otherMovieUsers)
-					similarity = algorithms.PearsonSimilarity[float32](vectorA, vectorB)
+					similarity = (algorithms.PearsonSimilarity[float32](vectorA, vectorB) + 1) / 2
 				}
 				localSimilarMovies = append(localSimilarMovies, model.SimilarMovie{
 					MovieID: otherMovieID, Similarity: similarity,

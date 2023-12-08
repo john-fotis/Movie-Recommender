@@ -71,7 +71,7 @@ func RecommendBasedOnTitle(cfg *config.Config, movieTitles *map[int]model.MovieT
 				case "pearson":
 					othetMovieTFMap := algorithms.TF((*movieTitles)[otherMovieID].Title)
 					vectorA, vectorB := util.GetTfIdfVectors(idfMap, selectedMovieTFMap, othetMovieTFMap)
-					similarity = algorithms.PearsonSimilarity[float64](vectorA, vectorB)
+					similarity = (algorithms.PearsonSimilarity[float64](vectorA, vectorB) + 1) / 2
 				}
 				localSimilarMovies = append(localSimilarMovies, model.SimilarMovie{
 					MovieID: otherMovieID, Similarity: similarity,
