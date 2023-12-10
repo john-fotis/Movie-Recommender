@@ -267,7 +267,10 @@ func checkRequestFeasibility(algorithm string, input int) string {
 			return "Movie ID not found in current dataset. Please try with another ID."
 		}
 	case "hybrid":
-		if _, exists := data.Movies[input]; !exists {
+		_, existsInMovies := data.Movies[input]
+		_, existsInTitle := data.MovieTitles[input]
+		_, existsInTags := data.MovieTags[input]
+		if !existsInMovies || !existsInTitle || !existsInTags {
 			return "Movie ID not found in current dataset. Please try with another ID."
 		}
 	}
