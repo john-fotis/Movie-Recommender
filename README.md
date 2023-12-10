@@ -25,8 +25,6 @@ Optional installations other than Golang are:
     │   └── js
     └── utils
     ```
-2. From now on, working directory is `recommender`
-    - `cd ./recommender`
 
 # Compilation & Execution
 * If you installed miniconda:
