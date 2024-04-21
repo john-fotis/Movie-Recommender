@@ -18,11 +18,11 @@
 
 <!-- Body -->
 
-# About the project
+## About the project
 This project marks my debut in learning [Go](https://go.dev/), driven by the assignment of the [Big Data](https://cgi.di.uoa.gr/~antoulas/index.html#teaching) course I attended in the context of my [Master's degree](https://www.di.uoa.gr/eng).
 The application can either run in CLI or start a simple Web UI as described in [Compilation & Execution](#compilation--execution) section. The design of the current application models (eg. user, movie, rating etc.) was influenced by the input data sourced from the [grouplens latest full dataset](https://grouplens.org/datasets/movielens/latest/) as of December 2023. From this point onward, this dataset will be referenced as `ml-latest`.
 
-# Requirements
+## Requirements
 *This application is written in Golang v1.21. It was developed in an Ubuntu 22.04 LTS environment.*
 
 Optional installations other than Golang are:
@@ -30,7 +30,7 @@ Optional installations other than Golang are:
     + Hash of image I used: `d0643508fa49105552c94a523529f4474f91730d3e0d1f168f1700c43ae67595`
 - Make (`sudo apt install -y make`)
 
-# Prepare project structure
+## Prepare project structure
 1. Place the dataset CSVs in a folder, eg: `./ml-latest`
     - Example:
     `tree -d .`
@@ -50,7 +50,7 @@ Optional installations other than Golang are:
     └── utils
     ```
 
-# Compilation & Execution
+## Compilation & Execution
 * If you installed miniconda:
     1. `conda create --name go --channel conda-forge go=1.21`
     2. `conda activate go`
@@ -82,10 +82,10 @@ Optional installations other than Golang are:
     2. Recommender: `./recommender -n 100 -s cosine -a tag -i 6539`
     3. UI: `./recommender -u`
 
-# Detailed report
+## Detailed report
 You can find the detailed report regarding the implementation of my recommender app in [Report.pdf](https://github.com/john-fotis/Movie-Recommender/blob/main/Report.pdf)
 
 <!-- Footer -->
 
-# License
+## License
 This project is licensed under the [MIT License](https://github.com/john-fotis/Movie-Recommender/blob/main/LICENSE.md)
