@@ -20,7 +20,8 @@
 
 ## About the project
 This project marks my debut in learning [Go](https://go.dev/), driven by the assignment of the [Big Data](https://cgi.di.uoa.gr/~antoulas/index.html#teaching) course I attended in the context of my [Master's degree](https://www.di.uoa.gr/eng).
-The application can either run in CLI or start a simple Web UI as described in [Compilation & Execution](#compilation--execution) section. The design of the current application models (eg. user, movie, rating etc.) was influenced by the input data sourced from the [grouplens latest full dataset](https://grouplens.org/datasets/movielens/latest/) as of December 2023. From this point onward, this dataset will be referenced as `ml-latest`.
+
+The application can either run in CLI mode or start a simple Web UI as described in [Compilation & Execution](#compilation--execution) section. The design of the current application models (eg. user, movie, rating etc.) was influenced by the input data sourced from the [grouplens latest full dataset](https://grouplens.org/datasets/movielens/latest/) as of December 2023. From this point onward, this dataset will be referenced as `ml-latest`.
 
 ## Requirements
 *This application is written in Golang v1.21. It was developed in an Ubuntu 22.04 LTS environment.*
