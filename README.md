@@ -1,3 +1,27 @@
+<!-- Header -->
+<div id="top"/>
+
+<h1 align="center"> Golang Movie Recommender </h1>
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#about-the-project">About The Project</a></li>
+    <li><a href="#requirements">Requirements</a></li>
+    <li><a href="#prepare-project-structure">Prepare Project Structure</a></li>
+    <li><a href="#compilation--execution">Compilation & Execution</a></li>
+    <li><a href="#detailed-report">Detailed Report</a></li>
+    <li><a href="#license">License</a></li>
+  </ol>
+</details>
+
+<!-- Body -->
+
+# About the project
+This project marks my debut in learning [Go](https://go.dev/), driven by the assignment of the [Big Data](https://cgi.di.uoa.gr/~antoulas/index.html#teaching) course I attended in the context of my [Master's degree](https://www.di.uoa.gr/eng).
+The application can either run in CLI or start a simple Web UI as described in [Compilation & Execution](#compilation--execution) section. The design of the current application models (eg. user, movie, rating etc.) was influenced by the input data sourced from the [grouplens latest full dataset](https://grouplens.org/datasets/movielens/latest/) as of December 2023. From this point onward, this dataset will be referenced as `ml-latest`.
+
 # Requirements
 *This application is written in Golang v1.21. It was developed in an Ubuntu 22.04 LTS environment.*
 
@@ -60,3 +84,8 @@ Optional installations other than Golang are:
 
 # Detailed report
 You can find the detailed report regarding the implementation of my recommender app in [Report.pdf](https://github.com/john-fotis/Movie-Recommender/blob/main/Report.pdf)
+
+<!-- Footer -->
+
+# License
+This project is licensed under the [MIT License](https://github.com/john-fotis/Movie-Recommender/blob/main/LICENSE.md)
